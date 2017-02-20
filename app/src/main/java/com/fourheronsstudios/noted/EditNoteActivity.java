@@ -26,9 +26,6 @@ public class EditNoteActivity extends AppCompatActivity {
     private TextView noteTitle;
     private TextView noteBody;
 
-    private EditText noteTitleEdit;
-    private EditText noteBodyEdit;
-
     private DBHelper dbHelper;
     private Note note;
     /**
@@ -57,15 +54,11 @@ public class EditNoteActivity extends AppCompatActivity {
             }
         });
 
-        noteTitleEdit = (EditText) findViewById(R.id.noteTitle);
-        noteBodyEdit = (EditText) findViewById(R.id.noteBody);
-
-        noteTitleEdit.setEnabled(false);
-        noteBodyEdit.setEnabled(false);
-
+        noteTitle = (EditText) findViewById(R.id.noteTitle);
+        noteBody = (EditText) findViewById(R.id.noteBody);
 
         Intent intent = getIntent();
-        int noteId = Integer.parseInt(intent.getStringExtra("noteId"));
+        int noteId = (Integer) intent.getExtras().get("noteId");
 
         dbHelper = new DBHelper(this);
         note = null;
@@ -77,8 +70,8 @@ public class EditNoteActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            noteTitleEdit.setText(note.getTitle());
-            noteBodyEdit.setText(note.getBody());
+            noteTitle.setText(note.getTitle());
+            noteBody.setText(note.getBody());
         }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
