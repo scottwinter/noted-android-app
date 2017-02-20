@@ -2,6 +2,7 @@ package com.fourheronsstudios.noted;
 
 import android.content.Intent;
 import android.database.SQLException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,6 +17,10 @@ import android.widget.Toast;
 
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.dto.Note;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 public class EditNoteActivity extends AppCompatActivity {
     private TextView noteTitle;
@@ -23,6 +28,11 @@ public class EditNoteActivity extends AppCompatActivity {
 
     private DBHelper dbHelper;
     private Note note;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,29 +58,28 @@ public class EditNoteActivity extends AppCompatActivity {
         noteBody = (EditText) findViewById(R.id.noteBody);
 
         Intent intent = getIntent();
-        int noteId = (Integer) intent.getExtras().get("noteId");
-
-        Log.i("EditNoteActivity Log", "Note ID from Intent: " + noteId);
+        int noteId = Integer.parseInt(intent.getStringExtra("noteId"));
 
         dbHelper = new DBHelper(this);
         note = null;
 
-        if(noteId != -1) {
+        if (noteId != -1) {
             try {
                 note = dbHelper.getSingleNote(noteId);
             } catch (SQLException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
                 e.printStackTrace();
             }
 
             noteTitle.setText(note.getTitle());
             noteBody.setText(note.getBody());
         }
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     public void saveNote() {
-        if(note == null) {
+        if (note == null) {
             note = new Note(noteTitle.getText().toString(), noteBody.getText().toString());
             try {
                 dbHelper.createNewNote(note.getTitle(), note.getBody(), System.currentTimeMillis());
@@ -86,8 +95,6 @@ public class EditNoteActivity extends AppCompatActivity {
                 dbHelper.updateNote(note.getId(), note.getTitle(), note.getBody(), System.currentTimeMillis());
             } catch (SQLException e) {
                 e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
         Toast.makeText(getApplicationContext(), "Note Saved", Toast.LENGTH_LONG).show();
@@ -102,9 +109,45 @@ public class EditNoteActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.saveNote) {
+        if (item.getItemId() == R.id.saveNote) {
             saveNote();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("EditNote Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
     }
 }
