@@ -1,2 +1,5 @@
 # noted-android-app
-This is a basic notes app for android
+NOTED
+This is a basic notes app for android.
+
+This is an awesome readme file.
