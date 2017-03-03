@@ -1,5 +1,6 @@
 package com.fourheronsstudios.noted.database;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -43,9 +44,14 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public void createNewNote(String title, String body, long datetime) {
         SQLiteDatabase notesDB = this.getWritableDatabase();
+
+        ContentValues content = new ContentValues();
+        content.put(COLUMN_TITLE, title);
+        content.put(COLUMN_BODY, body);
+        content.put(COLUMN_LAST_UPDATED, datetime);
         try {
-            notesDB.execSQL("INSERT INTO " + TABLE_NAME + " (" + COLUMN_TITLE + ", " + COLUMN_BODY + ", " +
-                    COLUMN_LAST_UPDATED + ") VALUES ('" + title + "', '" + body + "', '" + datetime+"')");
+
+            notesDB.insert(TABLE_NAME, null, content);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -53,10 +59,17 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public void updateNote(int id, String title, String body, long datetime) {
         SQLiteDatabase notesDB = this.getWritableDatabase();
+
+        String[] whereArgs = new String[1];
+        whereArgs[0] = "" + id;
+        String whereClaus = "id = ?";
+
+        ContentValues content = new ContentValues();
+        content.put(COLUMN_TITLE, title);
+        content.put(COLUMN_BODY, body);
+        content.put(COLUMN_LAST_UPDATED, datetime);
         try {
-            notesDB.execSQL("UPDATE " + TABLE_NAME + " SET " + COLUMN_TITLE + " = '" +
-                    title + "', " + COLUMN_BODY + " = '" + body + "', " + COLUMN_LAST_UPDATED +
-                    " = '" + datetime + "' WHERE id = " + id);
+            notesDB.update(TABLE_NAME, content, whereClaus, whereArgs);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -64,7 +77,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public ArrayList<Note> getAllNotes() {
         SQLiteDatabase notesDB = this.getReadableDatabase();
-        Cursor c;
+        Cursor c = null;
         ArrayList<Note> notes = new ArrayList<>();
         try {
             c = notesDB.rawQuery("SELECT " + COLUMN_ID + ", " + COLUMN_TITLE + ", " +
@@ -86,13 +99,17 @@ public class DBHelper extends SQLiteOpenHelper {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if(c != null) {
+                c.close();
+            }
         }
         return notes;
     }
 
     public Note getSingleNote(int id) {
         SQLiteDatabase notesDB = this.getReadableDatabase();
-        Cursor c;
+        Cursor c = null;
         Note note = null;
         try {
             c = notesDB.rawQuery("SELECT " + COLUMN_ID + ", " + COLUMN_TITLE + ", " +
@@ -108,6 +125,10 @@ public class DBHelper extends SQLiteOpenHelper {
                     c.getString(dateIndex));
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if(c != null) {
+                c.close();
+            }
         }
         return note;
     }
