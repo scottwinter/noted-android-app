@@ -5,7 +5,6 @@ import android.database.SQLException;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -13,7 +12,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ListView;
 
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.dto.Note;
@@ -42,9 +40,9 @@ public class MainActivity extends AppCompatActivity {
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRecyclerView.getContext(),
-                mLayoutManager.getOrientation());
-        mRecyclerView.addItemDecoration(dividerItemDecoration);
+//        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRecyclerView.getContext(),
+//                mLayoutManager.getOrientation());
+//        mRecyclerView.addItemDecoration(dividerItemDecoration);
         FloatingActionButton fab;
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -65,15 +63,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void populateNoteList() {
+        DBHelper dbHelper = new DBHelper(this);
         try {
-            DBHelper dbHelper = new DBHelper(this);
             //dbHelper.resetDatabaseTable();
             notes = dbHelper.getAllNotes();
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        mAdapter = new MyAdapter(notes);
+        mAdapter = new MyAdapter(notes, dbHelper);
         mRecyclerView.setAdapter(mAdapter);
     }
 
