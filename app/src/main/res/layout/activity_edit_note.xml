@@ -20,24 +20,49 @@
         android:layout_height="match_parent"
         android:inputType="textMultiLine"
         android:ems="10"
-        android:layout_below="@+id/noteTitle"
+        android:layout_below="@+id/noteTitleEdit"
         android:layout_alignParentStart="true"
-        android:id="@+id/noteBody"
+        android:id="@+id/noteBodyEdit"
         android:hint="@string/note_body"
         android:lines="25"
         android:minLines="17"
         android:gravity="top|start"
         android:maxLines="30"
-        android:scrollbars="vertical"/>
+        android:scrollbars="vertical"
+        android:visibility="invisible"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/noteTitle"
+        android:ems="10"
+        android:layout_below="@+id/toolbar"
+        android:layout_alignParentStart="true"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/noteBody"
+        android:ems="10"
+        android:layout_below="@+id/noteTitle"
+        android:layout_alignParentStart="true"
+        android:lines="25"
+        android:minLines="17"
+        android:gravity="top|start"
+        android:maxLines="30"
+        android:scrollbars="vertical"
+        />
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
         android:ems="10"
-        android:id="@+id/noteTitle"
+        android:id="@+id/noteTitleEdit"
         android:hint="@string/note_title"
         android:layout_below="@+id/toolbar"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:visibility="invisible" />
 
 </RelativeLayout>

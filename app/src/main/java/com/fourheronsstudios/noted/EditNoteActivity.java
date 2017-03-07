@@ -48,8 +48,8 @@ public class EditNoteActivity extends AppCompatActivity {
             }
         });
 
-        noteTitle = (EditText) findViewById(R.id.noteTitle);
-        noteBody = (EditText) findViewById(R.id.noteBody);
+        noteTitle = (TextView) findViewById(R.id.noteTitle);
+        noteBody = (TextView) findViewById(R.id.noteBody);
 
         Intent intent = getIntent();
         int noteId = (Integer) intent.getExtras().get("noteId");
