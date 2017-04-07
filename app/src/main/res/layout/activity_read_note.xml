@@ -14,29 +14,41 @@
         android:background="?attr/colorPrimary"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-    <EditText
+    <TextView
+        android:id="@+id/noteTitleRead"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:ems="10"
-        android:id="@+id/noteTitle"
-        android:hint="@string/note_title"
+        android:layout_alignParentStart="true"
         android:layout_below="@+id/toolbar"
-        android:layout_alignParentStart="true" />
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:ems="10"
+        android:textSize="20sp" />
 
-    <EditText
+    <View
+        android:id="@+id/space"
+        android:layout_width="match_parent"
+        android:layout_height="2dip"
+        android:layout_below="@+id/noteTitleRead"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="#FF00FF00" />
+
+    <TextView
+        android:id="@+id/noteBodyRead"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:inputType="textMultiLine"
-        android:ems="10"
-        android:layout_below="@+id/noteTitle"
         android:layout_alignParentStart="true"
-        android:id="@+id/noteBody"
-        android:hint="@string/note_body"
-        android:lines="25"
-        android:minLines="17"
+        android:layout_below="@+id/space"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:ems="10"
         android:gravity="top|start"
+        android:lines="25"
         android:maxLines="30"
-        android:scrollbars="vertical" />
+        android:minLines="17"
+        android:scrollbars="vertical"
+        android:textSize="16sp" />
 
 </RelativeLayout>
