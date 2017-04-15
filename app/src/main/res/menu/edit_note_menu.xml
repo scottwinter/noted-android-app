@@ -3,4 +3,7 @@
     <item android:id="@+id/saveNote"
         android:title="Save Note" >
     </item>
+    <item android:id="@+id/cancelEdit"
+        android:title="Cancel Edit" >
+    </item>
 </menu>

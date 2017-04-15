@@ -42,7 +42,8 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(notesDB);
     }
 
-    public void createNewNote(String title, String body, long datetime) {
+    public long createNewNote(String title, String body, long datetime) {
+        long id;
         SQLiteDatabase notesDB = this.getWritableDatabase();
 
         ContentValues content = new ContentValues();
@@ -50,11 +51,12 @@ public class DBHelper extends SQLiteOpenHelper {
         content.put(COLUMN_BODY, body);
         content.put(COLUMN_LAST_UPDATED, datetime);
         try {
-
-            notesDB.insert(TABLE_NAME, null, content);
+            id = notesDB.insert(TABLE_NAME, null, content);
         } catch (Exception e) {
             e.printStackTrace();
+            return -1;
         }
+        return id;
     }
 
     public void updateNote(int id, String title, String body, long datetime) {
