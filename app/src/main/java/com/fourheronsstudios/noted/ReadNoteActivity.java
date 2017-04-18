@@ -36,6 +36,7 @@ public class ReadNoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_read_note);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
