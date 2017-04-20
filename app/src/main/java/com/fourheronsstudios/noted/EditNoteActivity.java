@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.SQLException;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -38,11 +40,10 @@ public class EditNoteActivity extends AppCompatActivity {
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        toolbar.setNavigationIcon(R.drawable.ic_check_black_24dp);
+        toolbar.setNavigationIcon(R.drawable.ic_check_white_24dp);
         noteTitle = (TextView) findViewById(R.id.noteTitle);
         noteBody = (TextView) findViewById(R.id.noteBody);
 
