@@ -63,4 +63,13 @@ public class Note {
                 ", date='" + date + '\'' +
                 '}';
     }
+
+    public String toJson(){
+        return "{" +
+                "\"id\":" + id +"," +
+                "\"title\":\"" + title + "\"," +
+                "\"body\":\"" + body + "\"," +
+                "\"date\":" + date +
+                "}";
+    }
 }
