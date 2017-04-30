@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.dto.Note;
@@ -30,15 +31,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
     private ArrayList<Note> notes;
     private RecyclerView mRecyclerView;
-    private LinearLayoutManager mLayoutManager;
-    private MyAdapter mAdapter;
+//    private LinearLayoutManager mLayoutManager;
+//    private MyAdapter mAdapter;
 //    private DBHelper dbHelper;
 
     @Override
@@ -54,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
         mRecyclerView.setHasFixedSize(true);
 
-        mLayoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
 //        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRecyclerView.getContext(),
@@ -88,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        mAdapter = new MyAdapter(notes, dbHelper);
+        MyAdapter mAdapter = new MyAdapter(notes, dbHelper);
         mRecyclerView.setAdapter(mAdapter);
     }
 
@@ -122,59 +121,53 @@ public class MainActivity extends AppCompatActivity {
 
     private static boolean isExternalStorageReadOnly() {
         String extStorageState = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(extStorageState)) {
-            return true;
-        }
-        return false;
+        return Environment.MEDIA_MOUNTED_READ_ONLY.equals(extStorageState);
     }
 
     private static boolean isExternalStorageAvailable() {
         String extStorageState = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(extStorageState)) {
-            return true;
-        }
-        return false;
+        return Environment.MEDIA_MOUNTED.equals(extStorageState);
     }
 
     private void exportData() {
         Log.i("All Notes List", notes.toString());
         JSONArray notesJson = new JSONArray();
+        if (notes.size() > 0) {
+            for (Note note : notes) {
+                try {
+                    notesJson.put(new JSONObject(note.toJson()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
 
-        for (Note note : notes) {
+            File noteDir = getNotesStorageDir(this, "notedExport");
+
+            final File file = new File(noteDir, "notes.json");
+
+            // Save your stream, don't forget to flush() it before closing it.
+            if (file.exists()) {
+                file.delete();
+            }
             try {
-                notesJson.put(new JSONObject(note.toJson()));
-            } catch (Exception e){
-                e.printStackTrace();
+                boolean fileCreated = file.createNewFile();
+                if (fileCreated) {
+                    FileOutputStream fOut = new FileOutputStream(file);
+                    OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+                    myOutWriter.append(notesJson.toString());
+
+                    myOutWriter.close();
+
+                    fOut.flush();
+                    fOut.close();
+                } else {
+                    Log.e("File Creation Error", "File was not created.");
+                }
+            } catch (IOException e) {
+                Log.e("Exception", "File write failed: " + e.toString());
             }
-        }
-
-        File noteDir = getNotesStorageDir(this, "notedExport");
-
-        final File file = new File(noteDir, "notes.json");
-
-        // Save your stream, don't forget to flush() it before closing it.
-        if(file.exists()){
-            file.delete();
-        }
-        try
-        {
-            boolean fileCreated = file.createNewFile();
-            if(fileCreated) {
-                FileOutputStream fOut = new FileOutputStream(file);
-                OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-                myOutWriter.append(notesJson.toString());
-
-                myOutWriter.close();
-
-                fOut.flush();
-                fOut.close();
-            } else {
-                Log.e("File Creation Error", "File was not created.");
-            }
-        }
-        catch (IOException e)
-        {
-            Log.e("Exception", "File write failed: " + e.toString());
+        } else {
+            Toast.makeText(getApplicationContext(), "No notes to export.", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -189,36 +182,39 @@ public class MainActivity extends AppCompatActivity {
         } catch (JSONException je){
             Log.e("JSON Exception", je.getMessage());
         }
+        if( notesArray != null ) {
+            for (int i = 0; i < notesArray.length(); i++) {
+                JSONObject noteJson;
+                boolean noteExists = false;
+                try {
+                    noteJson = notesArray.getJSONObject(i);
 
-        for (int i = 0; i < notesArray.length(); i++) {
-            JSONObject noteJson;
-            boolean noteExists = false;
-            try {
-                noteJson = notesArray.getJSONObject(i);
-
-                for(Note note : notes) {
-                    Log.i("Note ID Note", note.getNoteId());
-                    Log.i("Note ID JSON", noteJson.getString("noteId"));
-                    if(note.getNoteId().equals(noteJson.getString("noteId"))){
-                        noteExists = true;
+                    for (Note note : notes) {
+                        Log.i("Note ID Note", note.getNoteId());
+                        Log.i("Note ID JSON", noteJson.getString("noteId"));
+                        if (note.getNoteId().equals(noteJson.getString("noteId"))) {
+                            noteExists = true;
+                        }
                     }
+
+                    if (!noteExists) {
+                        Log.i("Note Does Not Exists", noteJson.toString());
+
+                        dbHelper.createNewNote(noteJson.getString("noteId"), noteJson.getString("title"),
+                                noteJson.getString("body"), noteJson.getLong("date"));
+                    } else {
+                        Log.i("Note Exists", noteJson.toString());
+                    }
+
+                } catch (JSONException je) {
+                    Log.e("JSON Exception", je.toString());
                 }
-
-                if(!noteExists) {
-                    Log.i("Note Does Not Exists", noteJson.toString());
-
-                    dbHelper.createNewNote(noteJson.getString("noteId"), noteJson.getString("title"),
-                            noteJson.getString("body"), noteJson.getLong("date"));
-                } else {
-                    Log.i("Note Exists", noteJson.toString());
-                }
-
-            } catch (JSONException je) {
-                Log.e("JSON Exception", je.toString());
             }
-        }
 
-        populateNoteList();
+            populateNoteList();
+        } else {
+            Toast.makeText(getApplicationContext(), "Nothing to import.", Toast.LENGTH_LONG).show();
+        }
     }
 
     public File getNotesStorageDir(Context context, String notesName) {
@@ -233,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
 
     public String getTextFileData(String fileName) {
 
-        // Get the dir of SD Card
+        // Get the directory of SD Card
         File noteDir = getNotesStorageDir(this, "notedExport");
 
         // Get The Text file
@@ -243,23 +239,17 @@ public class MainActivity extends AppCompatActivity {
         StringBuilder text = new StringBuilder();
 
         try {
-
             BufferedReader reader = new BufferedReader(new FileReader(txtFile));
-
             String line;
-
             while ((line = reader.readLine()) != null) {
-                text.append(line + '\n');
+                text.append(line);
+                text.append("\n");
             }
             reader.close();
         } catch (IOException e) {
             Log.e("Error Reading File", "Error occurred while reading text file!!");
-
         }
 
         return text.toString();
-
     }
-
-
 }
