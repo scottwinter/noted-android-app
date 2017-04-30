@@ -22,8 +22,10 @@ import com.fourheronsstudios.noted.dto.Note;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -141,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        File noteDir = getAlbumStorageDir(this, "notedExport");
+        File noteDir = getNotesStorageDir(this, "notedExport");
 
         final File file = new File(noteDir, "notes.json");
 
@@ -149,7 +151,8 @@ public class MainActivity extends AppCompatActivity {
 
         try
         {
-            file.createNewFile();
+            boolean fileCreated = file.createNewFile();
+            Log.i("File Creation", "fileCreaeted = " + fileCreated);
             FileOutputStream fOut = new FileOutputStream(file);
             OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
             myOutWriter.append(notesJson.toString());
@@ -165,11 +168,14 @@ public class MainActivity extends AppCompatActivity {
             Log.e("Exception", "File write failed: " + e.toString());
         }
 
-
         return "working";
     }
 
-    public File getAlbumStorageDir(Context context, String notesName) {
+    public void importData(){
+        getTextFileData("");
+    }
+
+    public File getNotesStorageDir(Context context, String notesName) {
         // Get the directory for the app's private pictures directory.
         File file = new File(context.getExternalFilesDir(
                 Environment.DIRECTORY_DOCUMENTS), notesName);
@@ -178,5 +184,35 @@ public class MainActivity extends AppCompatActivity {
             Log.e("External File Storage", "Directory not created");
         }
         return file;
+    }
+
+    public String getTextFileData(String fileName) {
+
+        // Get the dir of SD Card
+        File sdCardDir = Environment.getExternalStorageDirectory();
+
+        // Get The Text file
+        File txtFile = new File(sdCardDir, fileName);
+
+        // Read the file Contents in a StringBuilder Object
+        StringBuilder text = new StringBuilder();
+
+        try {
+
+            BufferedReader reader = new BufferedReader(new FileReader(txtFile));
+
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                text.append(line + '\n');
+            }
+            reader.close();
+        } catch (IOException e) {
+            Log.e("C2c", "Error occured while reading text file!!");
+
+        }
+
+        return text.toString();
+
     }
 }
