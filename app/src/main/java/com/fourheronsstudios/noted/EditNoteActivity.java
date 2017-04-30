@@ -19,6 +19,8 @@ import android.widget.Toast;
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.dto.Note;
 
+import java.util.UUID;
+
 public class EditNoteActivity extends AppCompatActivity {
     private TextView noteTitle;
     private TextView noteBody;
@@ -82,11 +84,12 @@ public class EditNoteActivity extends AppCompatActivity {
     public void saveNote() {
         Intent intent;
         String toastMessage;
+        UUID noteId = UUID.randomUUID();
         if(!noteTitle.getText().toString().equals("") || !noteBody.getText().toString().equals("")) {
             if (note == null) {
                 note = new Note(noteTitle.getText().toString(), noteBody.getText().toString());
                 try {
-                    long id = dbHelper.createNewNote(note.getTitle(), note.getBody(), System.currentTimeMillis());
+                    long id = dbHelper.createNewNote(noteId.toString(), note.getTitle(), note.getBody(), System.currentTimeMillis());
                     note.setId((int) id);
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -97,7 +100,7 @@ public class EditNoteActivity extends AppCompatActivity {
                 note.setBody(noteBody.getText().toString());
                 note.setTitle(noteTitle.getText().toString());
                 try {
-                    dbHelper.updateNote(note.getId(), note.getTitle(), note.getBody(), System.currentTimeMillis());
+                    dbHelper.updateNote(note.getId(), noteId.toString(), note.getTitle(), note.getBody(), System.currentTimeMillis());
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }

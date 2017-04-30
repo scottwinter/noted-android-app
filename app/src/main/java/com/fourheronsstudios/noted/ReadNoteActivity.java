@@ -65,6 +65,7 @@ public class ReadNoteActivity extends AppCompatActivity {
         Intent intent = getIntent();
         int noteId = (Integer) intent.getExtras().get("noteId");
 
+
         dbHelper = new DBHelper(this);
         note = null;
 

@@ -20,6 +20,7 @@ import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.dto.Note;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -29,6 +30,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
     private MyAdapter mAdapter;
-    private DBHelper dbHelper;
+//    private DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (item.getItemId() == R.id.backupNotes) {
             Log.i("Info log", "Backup option menu item clicked.");
             exportData();
+        } else if (item.getItemId() == R.id.importNotes) {
+            Log.i("Notes Import", "Importing Notes");
+            importData();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -130,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private String exportData() {
+    private void exportData() {
         Log.i("All Notes List", notes.toString());
         JSONArray notesJson = new JSONArray();
 
@@ -138,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 notesJson.put(new JSONObject(note.toJson()));
             } catch (Exception e){
-                Log.i("Exception", "Exception 1");
                 e.printStackTrace();
             }
         }
@@ -148,38 +153,78 @@ public class MainActivity extends AppCompatActivity {
         final File file = new File(noteDir, "notes.json");
 
         // Save your stream, don't forget to flush() it before closing it.
-
+        if(file.exists()){
+            file.delete();
+        }
         try
         {
             boolean fileCreated = file.createNewFile();
-            Log.i("File Creation", "fileCreaeted = " + fileCreated);
-            FileOutputStream fOut = new FileOutputStream(file);
-            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-            myOutWriter.append(notesJson.toString());
+            if(fileCreated) {
+                FileOutputStream fOut = new FileOutputStream(file);
+                OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+                myOutWriter.append(notesJson.toString());
 
-            myOutWriter.close();
+                myOutWriter.close();
 
-            fOut.flush();
-            fOut.close();
-            Log.i("File Output", "File written to the SD hard");
+                fOut.flush();
+                fOut.close();
+            } else {
+                Log.e("File Creation Error", "File was not created.");
+            }
         }
         catch (IOException e)
         {
             Log.e("Exception", "File write failed: " + e.toString());
         }
-
-        return "working";
     }
 
     public void importData(){
-        getTextFileData("");
+        DBHelper dbHelper = new DBHelper(this);
+        String notesString = getTextFileData("notes.json");
+        Log.i("Read Notes", notesString);
+
+        JSONArray notesArray = null;
+        try {
+            notesArray = new JSONArray(notesString);
+        } catch (JSONException je){
+            Log.e("JSON Exception", je.getMessage());
+        }
+
+        for (int i = 0; i < notesArray.length(); i++) {
+            JSONObject noteJson;
+            boolean noteExists = false;
+            try {
+                noteJson = notesArray.getJSONObject(i);
+
+                for(Note note : notes) {
+                    Log.i("Note ID Note", note.getNoteId());
+                    Log.i("Note ID JSON", noteJson.getString("noteId"));
+                    if(note.getNoteId().equals(noteJson.getString("noteId"))){
+                        noteExists = true;
+                    }
+                }
+
+                if(!noteExists) {
+                    Log.i("Note Does Not Exists", noteJson.toString());
+
+                    dbHelper.createNewNote(noteJson.getString("noteId"), noteJson.getString("title"),
+                            noteJson.getString("body"), noteJson.getLong("date"));
+                } else {
+                    Log.i("Note Exists", noteJson.toString());
+                }
+
+            } catch (JSONException je) {
+                Log.e("JSON Exception", je.toString());
+            }
+        }
+
+        populateNoteList();
     }
 
     public File getNotesStorageDir(Context context, String notesName) {
         // Get the directory for the app's private pictures directory.
         File file = new File(context.getExternalFilesDir(
                 Environment.DIRECTORY_DOCUMENTS), notesName);
-        Log.i("File Path", file.toString());
         if (!file.mkdirs()) {
             Log.e("External File Storage", "Directory not created");
         }
@@ -189,10 +234,10 @@ public class MainActivity extends AppCompatActivity {
     public String getTextFileData(String fileName) {
 
         // Get the dir of SD Card
-        File sdCardDir = Environment.getExternalStorageDirectory();
+        File noteDir = getNotesStorageDir(this, "notedExport");
 
         // Get The Text file
-        File txtFile = new File(sdCardDir, fileName);
+        File txtFile = new File(noteDir, fileName);
 
         // Read the file Contents in a StringBuilder Object
         StringBuilder text = new StringBuilder();
@@ -208,11 +253,13 @@ public class MainActivity extends AppCompatActivity {
             }
             reader.close();
         } catch (IOException e) {
-            Log.e("C2c", "Error occured while reading text file!!");
+            Log.e("Error Reading File", "Error occurred while reading text file!!");
 
         }
 
         return text.toString();
 
     }
+
+
 }
