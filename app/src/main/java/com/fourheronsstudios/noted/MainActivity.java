@@ -150,8 +150,10 @@ public class MainActivity extends AppCompatActivity {
                 file.delete();
             }
             try {
+                Log.i("File Directory", file.getPath());
                 boolean fileCreated = file.createNewFile();
                 if (fileCreated) {
+                    Log.i("File Creation", "Inside fileCreated " + fileCreated);
                     FileOutputStream fOut = new FileOutputStream(file);
                     OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
                     myOutWriter.append(notesJson.toString());
@@ -219,8 +221,17 @@ public class MainActivity extends AppCompatActivity {
 
     public File getNotesStorageDir(Context context, String notesName) {
         // Get the directory for the app's private pictures directory.
-        File file = new File(context.getExternalFilesDir(
-                Environment.DIRECTORY_DOCUMENTS), notesName);
+        File file;
+        if(isExternalStorageAvailable() && isExternalStorageReadOnly()) {
+
+            file = new File(context.getExternalFilesDir(
+                    Environment.DIRECTORY_DOCUMENTS), notesName);
+            Log.i("Storage Directory", "External Storage: " + file.getPath());
+        } else {
+            file = new File(context.getFilesDir(), notesName);
+            Log.i("Storage Directory", "Internal Storage: " + file.getPath());
+        }
+
         if (!file.mkdirs()) {
             Log.e("External File Storage", "Directory not created");
         }
