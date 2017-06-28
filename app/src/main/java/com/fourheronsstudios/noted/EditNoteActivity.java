@@ -5,14 +5,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.SQLException;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.StyleSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,26 +44,35 @@ public class EditNoteActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_note);
 
+        // Set up toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
 
         toolbar.setNavigationIcon(R.drawable.ic_check_white_24dp);
-        noteTitle = (TextView) findViewById(R.id.noteTitle);
-        noteBody = (TextView) findViewById(R.id.noteBody);
-
-        Intent intent = getIntent();
-        final int noteId = (Integer) intent.getExtras().get("noteId");
-
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 saveNote();
             }
         });
+
+        // Get reference to EditText's
+        noteTitle = (EditText) findViewById(R.id.noteTitle);
+        noteBody = (EditText) findViewById(R.id.noteBody);
+
+        // Get note Id from intent sent from main Activity or Read Activity
+        Intent intent = getIntent();
+        int noteId = -1;
+        Object noteIdIntent = intent.getExtras().get("noteId");
+        if(noteIdIntent != null) {
+            noteId = Integer.parseInt(noteIdIntent.toString());
+        }
 
         dbHelper = new DBHelper(this);
         note = null;
@@ -70,6 +85,17 @@ public class EditNoteActivity extends AppCompatActivity {
             }
 
             noteTitle.setText(note.getTitle());
+
+//            int endOfString = note.getBody().toString().length();
+//            StyleSpan ss = new StyleSpan(Typeface.BOLD);
+//            Spannable spanRange = new SpannableString(note.getBody());
+
+//            TextAppearanceSpan tas = new TextAppearanceSpan(this, android.R.style.TextAppearance_Large);
+//            spanRange.setSpan(ss, 0, endOfString, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+
+//            noteBody.setText(spanRange);
+//            noteBody.setText(Html.fromHtml(note.getBody()));
             noteBody.setText(note.getBody());
             noteBody.requestFocus();
         } else {
@@ -88,6 +114,7 @@ public class EditNoteActivity extends AppCompatActivity {
         if(!noteTitle.getText().toString().equals("") || !noteBody.getText().toString().equals("")) {
             if (note == null) {
                 note = new Note(noteTitle.getText().toString(), noteBody.getText().toString());
+//                note = new Note(noteTitle.getText().toString(), Html.toHtml(noteBody.getEditableText()));
                 try {
                     long id = dbHelper.createNewNote(noteId.toString(), note.getTitle(), note.getBody(), System.currentTimeMillis());
                     note.setId((int) id);
@@ -97,6 +124,7 @@ public class EditNoteActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             } else {
+//                note.setBody(Html.toHtml(noteBody.getEditableText()));
                 note.setBody(noteBody.getText().toString());
                 note.setTitle(noteTitle.getText().toString());
                 try {
