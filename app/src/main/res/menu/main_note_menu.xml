@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/newNote"
+        android:title="New Note" >
+    </item>
+    <item android:id="@+id/sortByTitle"
+        android:title="Sort Notes by Title" >
+    </item>
+    <item android:id="@+id/backupNotes"
+        android:title="Backup Notes to SD Card" >
+    </item>
+    <item android:id="@+id/importNotes"
+        android:title="Import Notes from File" >
+    </item>
+</menu>

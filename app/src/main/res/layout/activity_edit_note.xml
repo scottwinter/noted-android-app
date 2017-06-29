@@ -14,11 +14,24 @@
         android:background="?attr/colorPrimary"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textCapSentences|textAutoCorrect"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:ems="10"
+        android:id="@+id/noteTitle"
+        android:hint="@string/note_title"
+        android:layout_below="@+id/toolbar"
+        android:layout_alignParentStart="true" />
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:inputType="textMultiLine"
+        android:inputType="textMultiLine|textCapSentences|textAutoCorrect"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:ems="10"
         android:layout_below="@+id/noteTitle"
         android:layout_alignParentStart="true"
@@ -28,16 +41,6 @@
         android:minLines="17"
         android:gravity="top|start"
         android:maxLines="30"
-        android:scrollbars="vertical"/>
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:ems="10"
-        android:id="@+id/noteTitle"
-        android:hint="@string/note_title"
-        android:layout_below="@+id/toolbar"
-        android:layout_alignParentStart="true" />
+        android:scrollbars="vertical" />
 
 </RelativeLayout>

@@ -31,7 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/list_title"
-        android:maxLines="1"
+        android:maxLines="3"
         android:maxWidth="300dp"
         android:ellipsize="end"
         tools:text="This is a note body.  Hopefully this is showing up ok."

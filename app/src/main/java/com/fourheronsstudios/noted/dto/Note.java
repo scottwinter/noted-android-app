@@ -4,14 +4,17 @@ public class Note {
 
     private int id;
 
+    private String noteId;
+
     private String title;
 
     private String body;
 
     private String date;
 
-    public Note (int id, String title, String body, String date) {
+    public Note (int id, String noteId, String title, String body, String date) {
         this.id = id;
+        this.noteId = noteId;
         this.title = title;
         this.body = body;
         this.date = date;
@@ -28,6 +31,14 @@ public class Note {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getNoteId() {
+        return noteId;
+    }
+
+    public void setNoteId(String noteId) {
+        this.noteId = noteId;
     }
 
     public String getTitle() {
@@ -58,9 +69,20 @@ public class Note {
     public String toString() {
         return "Note{" +
                 "id=" + id +
+                ", noteId='" + noteId + '\'' +
                 ", title='" + title + '\'' +
                 ", body='" + body + '\'' +
                 ", date='" + date + '\'' +
                 '}';
+    }
+
+    public String toJson(){
+        return "{" +
+                "\"id\":" + id +"," +
+                "\"noteId\":\"" + noteId + "\"," +
+                "\"title\":\"" + title + "\"," +
+                "\"body\":\"" + body + "\"," +
+                "\"date\":" + date +
+                "}";
     }
 }
