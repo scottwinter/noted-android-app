@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.style.StyleSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -96,7 +97,11 @@ public class EditNoteActivity extends AppCompatActivity {
 
 //            noteBody.setText(spanRange);
 //            noteBody.setText(Html.fromHtml(note.getBody()));
-            noteBody.setText(note.getBody());
+
+            String yazi="<b>must be bold</b> not bold.";
+            Spanned text1 = Html.fromHtml(yazi);
+
+            noteBody.setText(text1);
             noteBody.requestFocus();
         } else {
             noteTitle.requestFocus();
@@ -113,8 +118,8 @@ public class EditNoteActivity extends AppCompatActivity {
         UUID noteId = UUID.randomUUID();
         if(!noteTitle.getText().toString().equals("") || !noteBody.getText().toString().equals("")) {
             if (note == null) {
-                note = new Note(noteTitle.getText().toString(), noteBody.getText().toString());
-//                note = new Note(noteTitle.getText().toString(), Html.toHtml(noteBody.getEditableText()));
+//                note = new Note(noteTitle.getText().toString(), noteBody.getText().toString());
+                note = new Note(noteTitle.getText().toString(), Html.toHtml(noteBody.getEditableText()));
                 try {
                     long id = dbHelper.createNewNote(noteId.toString(), note.getTitle(), note.getBody(), System.currentTimeMillis());
                     note.setId((int) id);
@@ -124,8 +129,8 @@ public class EditNoteActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             } else {
-//                note.setBody(Html.toHtml(noteBody.getEditableText()));
-                note.setBody(noteBody.getText().toString());
+                note.setBody(Html.toHtml(noteBody.getEditableText()));
+//                note.setBody(noteBody.getText().toString());
                 note.setTitle(noteTitle.getText().toString());
                 try {
                     dbHelper.updateNote(note.getId(), noteId.toString(), note.getTitle(), note.getBody(), System.currentTimeMillis());
