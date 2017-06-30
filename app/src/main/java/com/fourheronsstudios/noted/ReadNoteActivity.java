@@ -12,6 +12,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
+import android.text.Spanned;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -76,8 +78,9 @@ public class ReadNoteActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
+            Spanned noteBodyFormatted = Html.fromHtml(note.getBody());
             noteTitle.setText(note.getTitle());
-            noteBody.setText(note.getBody());
+            noteBody.setText(noteBodyFormatted);
         }
 
         FloatingActionButton fab;

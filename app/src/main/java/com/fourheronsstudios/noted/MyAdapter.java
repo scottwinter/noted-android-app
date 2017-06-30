@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -94,10 +96,12 @@ class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-
         String newDescription = mDataset.get(position).getBody();
+
+        Spanned descFormatted = Html.fromHtml(newDescription.replace("\n", " "));
+
         holder.title.setText(mDataset.get(position).getTitle());
-        holder.description.setText(newDescription.replace("\n", " "));
+        holder.description.setText(descFormatted);
         holder.noteId = mDataset.get(position).getId();
 
         long timeDiff = System.currentTimeMillis() - Long.parseLong(mDataset.get(position).getDate());

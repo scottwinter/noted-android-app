@@ -15,6 +15,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -98,8 +99,8 @@ public class EditNoteActivity extends AppCompatActivity {
 //            noteBody.setText(spanRange);
 //            noteBody.setText(Html.fromHtml(note.getBody()));
 
-            String yazi="<b>must be bold</b> not bold.";
-            Spanned text1 = Html.fromHtml(yazi);
+//            String yazi="<b>must be bold</b> not bold.";
+            Spanned text1 = Html.fromHtml(note.getBody());
 
             noteBody.setText(text1);
             noteBody.requestFocus();
@@ -131,6 +132,7 @@ public class EditNoteActivity extends AppCompatActivity {
             } else {
                 note.setBody(Html.toHtml(noteBody.getEditableText()));
 //                note.setBody(noteBody.getText().toString());
+                Log.i("Html body", note.getBody());
                 note.setTitle(noteTitle.getText().toString());
                 try {
                     dbHelper.updateNote(note.getId(), noteId.toString(), note.getTitle(), note.getBody(), System.currentTimeMillis());
