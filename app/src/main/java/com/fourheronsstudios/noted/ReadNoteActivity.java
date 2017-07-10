@@ -19,15 +19,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.dto.Note;
 
 public class ReadNoteActivity extends AppCompatActivity {
-    private TextView noteTitle;
-    private TextView noteBody;
-
     private DBHelper dbHelper;
     private Note note;
     /**
@@ -46,8 +42,12 @@ public class ReadNoteActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         final Drawable upArrow = ResourcesCompat.getDrawable(getResources(), R.drawable.abc_ic_ab_back_material, null);
-        upArrow.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP);
-        getSupportActionBar().setHomeAsUpIndicator(upArrow);
+        if(upArrow != null) {
+            upArrow.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP);
+        }
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setHomeAsUpIndicator(upArrow);
+        }
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -61,12 +61,15 @@ public class ReadNoteActivity extends AppCompatActivity {
             }
         });
 
-        noteTitle = (TextView) findViewById(R.id.noteTitleRead);
-        noteBody = (TextView) findViewById(R.id.noteBodyRead);
+        TextView noteTitle = (TextView) findViewById(R.id.noteTitleRead);
+        TextView noteBody = (TextView) findViewById(R.id.noteBodyRead);
 
         Intent intent = getIntent();
-        int noteId = (Integer) intent.getExtras().get("noteId");
-
+        int noteId = -1;
+        Object noteIdIntent = intent.getExtras().get("noteId");
+        if(noteIdIntent != null) {
+            noteId = Integer.parseInt(noteIdIntent.toString());
+        }
 
         dbHelper = new DBHelper(this);
         note = null;

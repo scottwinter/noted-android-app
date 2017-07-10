@@ -173,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void importData(){
+    public void importData() {
         DBHelper dbHelper = new DBHelper(this);
         String notesString = getTextFileData("notes.json");
         Log.i("Read Notes", notesString);
@@ -181,10 +181,10 @@ public class MainActivity extends AppCompatActivity {
         JSONArray notesArray = null;
         try {
             notesArray = new JSONArray(notesString);
-        } catch (JSONException je){
+        } catch (JSONException je) {
             Log.e("JSON Exception", je.getMessage());
         }
-        if( notesArray != null ) {
+        if (notesArray != null) {
             for (int i = 0; i < notesArray.length(); i++) {
                 JSONObject noteJson;
                 boolean noteExists = false;
@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
     public File getNotesStorageDir(Context context, String notesName) {
         // Get the directory for the app's private pictures directory.
         File file;
-        if(isExternalStorageAvailable() && isExternalStorageReadOnly()) {
+        if (isExternalStorageAvailable() && isExternalStorageReadOnly()) {
 
             file = new File(context.getExternalFilesDir(
                     Environment.DIRECTORY_DOCUMENTS), notesName);

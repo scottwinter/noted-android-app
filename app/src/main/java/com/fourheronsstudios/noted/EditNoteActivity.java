@@ -4,17 +4,11 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.SQLException;
-import android.graphics.PorterDuff;
-import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,11 +29,6 @@ public class EditNoteActivity extends AppCompatActivity {
 
     private DBHelper dbHelper;
     private Note note;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-//    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,8 +113,8 @@ public class EditNoteActivity extends AppCompatActivity {
                 try {
                     long id = dbHelper.createNewNote(noteId.toString(), note.getTitle(), note.getBody(), System.currentTimeMillis());
                     note.setId((int) id);
-                } catch (SQLException e) {
-                    e.printStackTrace();
+                } catch (SQLException sqle) {
+                    sqle.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
