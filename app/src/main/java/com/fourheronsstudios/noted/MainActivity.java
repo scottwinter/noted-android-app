@@ -96,7 +96,9 @@ public class MainActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_note_menu, menu);
 
-        if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
+        if (!isExternalStorageAvailable()
+//                || isExternalStorageReadOnly()
+                ) {
             menu.getItem(2).setEnabled(false);
         }
 
@@ -222,7 +224,9 @@ public class MainActivity extends AppCompatActivity {
     public File getNotesStorageDir(Context context, String notesName) {
         // Get the directory for the app's private pictures directory.
         File file;
-        if(isExternalStorageAvailable() && isExternalStorageReadOnly()) {
+        if(isExternalStorageAvailable()
+//                && isExternalStorageReadOnly()
+                ) {
 
             file = new File(context.getExternalFilesDir(
                     Environment.DIRECTORY_DOCUMENTS), notesName);
