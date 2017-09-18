@@ -28,7 +28,7 @@
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="16dp"
-        android:ems="10"
+        style="@android:style/TextAppearance.Large"
         android:textSize="20sp" />
 
     <View
@@ -49,7 +49,7 @@
         android:paddingTop="16dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:ems="10"
+        style="@android:style/TextAppearance.Medium"
         android:gravity="top|start"
         android:lines="25"
         android:maxLines="30"

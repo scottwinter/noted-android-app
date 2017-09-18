@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.fourheronsstudios.noted.dto.Note;
+import com.fourheronsstudios.noted.model.Note;
 
 import java.util.ArrayList;
 

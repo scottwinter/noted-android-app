@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -18,7 +19,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.fourheronsstudios.noted.database.DBHelper;
-import com.fourheronsstudios.noted.dto.Note;
+import com.fourheronsstudios.noted.model.Note;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,9 +37,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<Note> notes;
     private RecyclerView mRecyclerView;
-//    private LinearLayoutManager mLayoutManager;
-//    private MyAdapter mAdapter;
-//    private DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +54,15 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-//        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRecyclerView.getContext(),
-//                mLayoutManager.getOrientation());
-//        mRecyclerView.addItemDecoration(dividerItemDecoration);
+
+        // RecyclerView Decoration
+        DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(mRecyclerView.getContext(),
+                mLayoutManager.getOrientation());
+
+        mRecyclerView.addItemDecoration(mDividerItemDecoration);
+
+        // End Decoration
+
         FloatingActionButton fab;
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -111,13 +115,14 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), EditNoteActivity.class);
             intent.putExtra("noteId", -1);
             startActivity(intent);
-        } else if (item.getItemId() == R.id.backupNotes) {
-            Log.i("Info log", "Backup option menu item clicked.");
-            exportData();
-        } else if (item.getItemId() == R.id.importNotes) {
-            Log.i("Notes Import", "Importing Notes");
-            importData();
         }
+// else if (item.getItemId() == R.id.backupNotes) {
+//            Log.i("Info log", "Backup option menu item clicked.");
+//            exportData();
+//        } else if (item.getItemId() == R.id.importNotes) {
+//            Log.i("Notes Import", "Importing Notes");
+//            importData();
+//        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -175,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void importData(){
+    public void importData() {
         DBHelper dbHelper = new DBHelper(this);
         String notesString = getTextFileData("notes.json");
         Log.i("Read Notes", notesString);
@@ -183,10 +188,10 @@ public class MainActivity extends AppCompatActivity {
         JSONArray notesArray = null;
         try {
             notesArray = new JSONArray(notesString);
-        } catch (JSONException je){
+        } catch (JSONException je) {
             Log.e("JSON Exception", je.getMessage());
         }
-        if( notesArray != null ) {
+        if (notesArray != null) {
             for (int i = 0; i < notesArray.length(); i++) {
                 JSONObject noteJson;
                 boolean noteExists = false;
@@ -224,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
     public File getNotesStorageDir(Context context, String notesName) {
         // Get the directory for the app's private pictures directory.
         File file;
-        if(isExternalStorageAvailable()
+        if (isExternalStorageAvailable()
 //                && isExternalStorageReadOnly()
                 ) {
 

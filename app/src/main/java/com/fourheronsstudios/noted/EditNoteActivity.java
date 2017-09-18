@@ -4,16 +4,9 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.SQLException;
-import android.graphics.PorterDuff;
-import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Html;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.StyleSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -23,7 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fourheronsstudios.noted.database.DBHelper;
-import com.fourheronsstudios.noted.dto.Note;
+import com.fourheronsstudios.noted.model.Note;
 
 import java.util.UUID;
 

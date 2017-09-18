@@ -1,4 +1,4 @@
-package com.fourheronsstudios.noted.dto;
+package com.fourheronsstudios.noted.model;
 
 public class Note {
 
