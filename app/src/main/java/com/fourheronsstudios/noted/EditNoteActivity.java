@@ -17,6 +17,8 @@ import android.widget.Toast;
 
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.model.Note;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.UUID;
 
@@ -101,11 +103,21 @@ public class EditNoteActivity extends AppCompatActivity {
     }
 
     public void saveNote() {
+
+        // FIREBASE TESTING
+        // Write a message to the database
+//        FirebaseDatabase database = FirebaseDatabase.getInstance();
+//        DatabaseReference myRef = database.getReference("note" + note.getNoteId()) ;
+//
+//        myRef.setValue(note);
+
+        // END FIREBASE TESTING
+
         Intent intent;
         String toastMessage;
-        UUID noteId = UUID.randomUUID();
         if(!noteTitle.getText().toString().equals("") || !noteBody.getText().toString().equals("")) {
             if (note == null) {
+                UUID noteId = UUID.randomUUID();
                 note = new Note(noteTitle.getText().toString(), noteBody.getText().toString());
 //                note = new Note(noteTitle.getText().toString(), Html.toHtml(noteBody.getEditableText()));
                 try {
@@ -121,7 +133,7 @@ public class EditNoteActivity extends AppCompatActivity {
                 note.setBody(noteBody.getText().toString());
                 note.setTitle(noteTitle.getText().toString());
                 try {
-                    dbHelper.updateNote(note.getId(), noteId.toString(), note.getTitle(), note.getBody(), System.currentTimeMillis());
+                    dbHelper.updateNote(note.getId(), note.getNoteId(), note.getTitle(), note.getBody(), System.currentTimeMillis());
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
