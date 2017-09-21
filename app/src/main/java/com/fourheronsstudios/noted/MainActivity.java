@@ -20,6 +20,12 @@ import android.widget.Toast;
 
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.model.Note;
+import com.fourheronsstudios.noted.utils.DatabaseUtil;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,6 +38,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -74,6 +81,33 @@ public class MainActivity extends AppCompatActivity {
         });
 
         populateNoteList();
+
+
+        // FIREBASE get list of results for specific user
+        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
+        DatabaseReference database = databaseInstance.getReference("users").child("scott");
+
+        ValueEventListener postListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+
+                for(DataSnapshot noteSnapshot : dataSnapshot.getChildren()) {
+                    Note note = noteSnapshot.getValue(Note.class);
+                    Log.i("Firebase", "--------------------------------------Note from Firebase: " + note);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w("loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+        database.addListenerForSingleValueEvent(postListener);
+
+        // END FIREBASE
     }
 
     @Override
@@ -93,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
         }
         MyAdapter mAdapter = new MyAdapter(notes, dbHelper);
         mRecyclerView.setAdapter(mAdapter);
+
+
+
     }
 
     @Override

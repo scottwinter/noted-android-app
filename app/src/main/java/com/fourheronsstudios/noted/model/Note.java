@@ -25,6 +25,8 @@ public class Note {
         this.body = body;
     }
 
+    public Note () { }
+
     public int getId() {
         return id;
     }

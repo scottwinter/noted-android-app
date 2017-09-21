@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.model.Note;
+import com.fourheronsstudios.noted.utils.DatabaseUtil;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -106,10 +107,9 @@ public class EditNoteActivity extends AppCompatActivity {
 
         // FIREBASE TESTING
         // Write a message to the database
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference myRef = database.getReference("note" + note.getNoteId()) ;
-//
-//        myRef.setValue(note);
+        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
+        DatabaseReference database = databaseInstance.getReference();
+//        database.child("users").child("scott").setValue(user);
 
         // END FIREBASE TESTING
 
@@ -119,10 +119,14 @@ public class EditNoteActivity extends AppCompatActivity {
             if (note == null) {
                 UUID noteId = UUID.randomUUID();
                 note = new Note(noteTitle.getText().toString(), noteBody.getText().toString());
+                note.setNoteId(noteId.toString());
+                note.setDate(String.valueOf(System.currentTimeMillis()));
 //                note = new Note(noteTitle.getText().toString(), Html.toHtml(noteBody.getEditableText()));
                 try {
-                    long id = dbHelper.createNewNote(noteId.toString(), note.getTitle(), note.getBody(), System.currentTimeMillis());
+                    long id = dbHelper.createNewNote(note.getNoteId(), note.getTitle(), note.getBody(), System.currentTimeMillis());
                     note.setId((int) id);
+                    // FIREBASE add new note to firebase
+                    database.child("users").child("scott").child(note.getNoteId()).setValue(note);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 } catch (Exception e) {
@@ -134,6 +138,11 @@ public class EditNoteActivity extends AppCompatActivity {
                 note.setTitle(noteTitle.getText().toString());
                 try {
                     dbHelper.updateNote(note.getId(), note.getNoteId(), note.getTitle(), note.getBody(), System.currentTimeMillis());
+                    // Save to firebase
+                    note.setDate(String.valueOf(System.currentTimeMillis()));
+
+                    // FIREBASE update existing note in fit
+                    database.child("users").child("scott").child(note.getNoteId()).setValue(note);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
