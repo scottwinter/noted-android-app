@@ -21,6 +21,7 @@ import android.widget.Toast;
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.model.Note;
 import com.fourheronsstudios.noted.utils.DatabaseUtil;
+import com.fourheronsstudios.noted.utils.NotedUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -44,10 +45,12 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<Note> notes;
     private RecyclerView mRecyclerView;
+    private NotedUtils utils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        utils = new NotedUtils();
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -152,11 +155,11 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), EditNoteActivity.class);
             intent.putExtra("noteId", -1);
             startActivity(intent);
+        } else if (item.getItemId() == R.id.sync) {
+            Log.i("Info log", "Cloud syncing.");
+            utils.cloudSync(this);
         }
-// else if (item.getItemId() == R.id.backupNotes) {
-//            Log.i("Info log", "Backup option menu item clicked.");
-//            exportData();
-//        } else if (item.getItemId() == R.id.importNotes) {
+//        else if (item.getItemId() == R.id.importNotes) {
 //            Log.i("Notes Import", "Importing Notes");
 //            importData();
 //        }

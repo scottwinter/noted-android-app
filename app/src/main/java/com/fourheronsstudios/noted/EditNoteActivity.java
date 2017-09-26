@@ -104,15 +104,6 @@ public class EditNoteActivity extends AppCompatActivity {
     }
 
     public void saveNote() {
-
-        // FIREBASE TESTING
-        // Write a message to the database
-        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
-        DatabaseReference database = databaseInstance.getReference();
-//        database.child("users").child("scott").setValue(user);
-
-        // END FIREBASE TESTING
-
         Intent intent;
         String toastMessage;
         if(!noteTitle.getText().toString().equals("") || !noteBody.getText().toString().equals("")) {
@@ -121,28 +112,23 @@ public class EditNoteActivity extends AppCompatActivity {
                 note = new Note(noteTitle.getText().toString(), noteBody.getText().toString());
                 note.setNoteId(noteId.toString());
                 note.setDate(String.valueOf(System.currentTimeMillis()));
-//                note = new Note(noteTitle.getText().toString(), Html.toHtml(noteBody.getEditableText()));
                 try {
                     long id = dbHelper.createNewNote(note.getNoteId(), note.getTitle(), note.getBody(), System.currentTimeMillis());
                     note.setId((int) id);
-                    // FIREBASE add new note to firebase
-                    database.child("users").child("scott").child(note.getNoteId()).setValue(note);
+
                 } catch (SQLException e) {
                     e.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             } else {
-//                note.setBody(Html.toHtml(noteBody.getEditableText()));
                 note.setBody(noteBody.getText().toString());
                 note.setTitle(noteTitle.getText().toString());
                 try {
                     dbHelper.updateNote(note.getId(), note.getNoteId(), note.getTitle(), note.getBody(), System.currentTimeMillis());
-                    // Save to firebase
-                    note.setDate(String.valueOf(System.currentTimeMillis()));
 
-                    // FIREBASE update existing note in fit
-                    database.child("users").child("scott").child(note.getNoteId()).setValue(note);
+
+
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -159,6 +145,8 @@ public class EditNoteActivity extends AppCompatActivity {
         startActivity(intent);
         Toast.makeText(getApplicationContext(), toastMessage, Toast.LENGTH_LONG).show();
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
