@@ -39,7 +39,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -97,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
                 for(DataSnapshot noteSnapshot : dataSnapshot.getChildren()) {
                     Note note = noteSnapshot.getValue(Note.class);
-                    Log.i("Firebase", "--------------------------------------Note from Firebase: " + note);
+//                    Log.i("Firebase", "--------------------------------------Note from Firebase: " + note);
                 }
             }
 
@@ -129,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         MyAdapter mAdapter = new MyAdapter(notes, dbHelper);
+        mAdapter.notifyDataSetChanged();
         mRecyclerView.setAdapter(mAdapter);
 
 
@@ -155,15 +158,88 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), EditNoteActivity.class);
             intent.putExtra("noteId", -1);
             startActivity(intent);
-        } else if (item.getItemId() == R.id.sync) {
+        } else if (item.getItemId() == R.id.backup) {
             Log.i("Info log", "Cloud syncing.");
-            utils.cloudSync(this);
+            cloudBackup(this);
+        } else if (item.getItemId() == R.id.restore) {
+            Log.i("Info log", "Cloud syncing.");
+            cloudRestore(this);
         }
 //        else if (item.getItemId() == R.id.importNotes) {
 //            Log.i("Notes Import", "Importing Notes");
 //            importData();
 //        }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void cloudRestore(Context context){
+        List<Note> allNotes = new ArrayList<>();
+
+        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
+        DatabaseReference database = databaseInstance.getReference("users").child("scott");
+        final DBHelper dbHelper = new DBHelper(context);
+        ValueEventListener postListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.i("Firebase", "On change method executed");
+                dbHelper.deleteAllNotes();
+                for (DataSnapshot noteSnapshot: dataSnapshot.getChildren()) {
+                    // TODO: handle the post
+                    Note note = noteSnapshot.getValue(Note.class);
+                    if(note != null) {
+                        Log.i("Firebase Test", "Note was not null: " + note);
+
+                        dbHelper.createNewNote(note.getNoteId(), note.getTitle(), note.getBody(), Long.valueOf(note.getDate()));
+                    }
+
+                    Log.i("From Firebase", note.toString());
+//                    allNotes.add(note);
+
+                }
+                populateNoteList();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w("loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+        database.addListenerForSingleValueEvent(postListener);
+
+        allNotes = dbHelper.getAllNotes();
+        Log.i("Firebase List", "Note size from list: " + allNotes.size());
+        for(Note note : allNotes){
+            Log.i("From Firebase List", note.toString());
+        }
+    }
+
+    public void cloudBackup(Context context){
+
+        DBHelper dbHelper = new DBHelper(context);
+        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
+        DatabaseReference database = databaseInstance.getReference();
+
+        List<Note> allNotes = dbHelper.getAllNotes();
+        Map<String, Note> allNotesMap = new HashMap<>();
+
+        for(Note note : allNotes){
+//            allNotesMap.put(note.getNoteId(), note);
+            database.child("users").child("scott").child(note.getNoteId()).setValue(note);
+            Log.i("Sync log", "Note ID: " + note.getNoteId());
+        }
+
+        /*
+        This is the general sudo code
+        - get all notes from local database
+        - loop through all notes
+            - Update firebase using setValue for each note
+        - Get all notes back from firebase
+        - Update local database with all data from firebase
+        - Update any UI elements (Local method to class calling cloudBackup)
+         */
+
     }
 
     private static boolean isExternalStorageReadOnly() {

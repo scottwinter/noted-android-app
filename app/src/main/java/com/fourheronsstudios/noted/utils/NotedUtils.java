@@ -6,20 +6,24 @@ import android.util.Log;
 
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.model.Note;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class NotedUtils {
 
-    private DBHelper dbHelper;
+//    private DBHelper dbHelper;
 
-    public void cloudSync(Context context){
+    public void cloudBackup(Context context){
 
-        dbHelper = new DBHelper(context);
+        DBHelper dbHelper = new DBHelper(context);
         FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
         DatabaseReference database = databaseInstance.getReference();
 
@@ -39,22 +43,52 @@ public class NotedUtils {
             - Update firebase using setValue for each note
         - Get all notes back from firebase
         - Update local database with all data from firebase
-        - Update any UI elements (Local method to class calling cloudSync)
+        - Update any UI elements (Local method to class calling cloudBackup)
          */
 
+    }
 
 
-        // FIREBASE TESTING
-        // Write a message to the database
+    public void cloudRestore(Context context){
+        List<Note> allNotes = new ArrayList<>();
 
-//        database.child("users").child("scott").setValue(user);
+        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
+        DatabaseReference database = databaseInstance.getReference("users").child("scott");
+        final DBHelper dbHelper = new DBHelper(context);
+        ValueEventListener postListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.i("Firebase", "On change method executed");
+                dbHelper.deleteAllNotes();
+                for (DataSnapshot noteSnapshot: dataSnapshot.getChildren()) {
+                    // TODO: handle the post
+                    Note note = noteSnapshot.getValue(Note.class);
+                    if(note != null) {
+                        Log.i("Firebase Test", "Note was not null: " + note);
 
-        // END FIREBASE TESTING
+                        dbHelper.createNewNote(note.getNoteId(), note.getTitle(), note.getBody(), Long.valueOf(note.getDate()));
+                    }
 
-        // FIREBASE add new note to firebase
-        Log.i("Sync log", "Updating firebase.");
-        database.child("users").child("scott").setValue(allNotesMap);
+                    Log.i("From Firebase", note.toString());
+//                    allNotes.add(note);
 
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w("loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+        database.addListenerForSingleValueEvent(postListener);
+
+        allNotes = dbHelper.getAllNotes();
+        Log.i("Firebase List", "Note size from list: " + allNotes.size());
+        for(Note note : allNotes){
+            Log.i("From Firebase List", note.toString());
+        }
     }
 }
 

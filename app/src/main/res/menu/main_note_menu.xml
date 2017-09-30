@@ -3,8 +3,11 @@
     <item android:id="@+id/newNote"
         android:title="New Note" >
     </item>
-    <item android:id="@+id/sync"
-        android:title="Sync Notes" >
+    <item android:id="@+id/backup"
+        android:title="Backup Notes" >
+    </item>
+    <item android:id="@+id/restore"
+        android:title="Restore Notes" >
     </item>
     <!--<item android:id="@+id/sortByTitle"-->
         <!--android:title="Sort Notes by Title" >-->
