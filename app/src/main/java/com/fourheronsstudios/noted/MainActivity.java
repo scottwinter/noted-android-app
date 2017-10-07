@@ -27,6 +27,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -89,28 +92,28 @@ public class MainActivity extends AppCompatActivity {
 
 
         // FIREBASE get list of results for specific user
-        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
-        DatabaseReference database = databaseInstance.getReference("users").child("scott");
-
-        ValueEventListener postListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-
-                for(DataSnapshot noteSnapshot : dataSnapshot.getChildren()) {
-                    Note note = noteSnapshot.getValue(Note.class);
-//                    Log.i("Firebase", "--------------------------------------Note from Firebase: " + note);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w("loadPost:onCancelled", databaseError.toException());
-                // ...
-            }
-        };
-        database.addListenerForSingleValueEvent(postListener);
+//        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
+//        DatabaseReference database = databaseInstance.getReference("users").child("scott");
+//
+//        ValueEventListener postListener = new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                // Get Post object and use the values to update the UI
+//
+//                for(DataSnapshot noteSnapshot : dataSnapshot.getChildren()) {
+//                    Note note = noteSnapshot.getValue(Note.class);
+////                    Log.i("Firebase", "--------------------------------------Note from Firebase: " + note);
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//                // Getting Post failed, log a message
+//                Log.w("loadPost:onCancelled", databaseError.toException());
+//                // ...
+//            }
+//        };
+//        database.addListenerForSingleValueEvent(postListener);
 
         // END FIREBASE
     }
@@ -217,18 +220,32 @@ public class MainActivity extends AppCompatActivity {
 
     public void cloudBackup(Context context){
 
-        DBHelper dbHelper = new DBHelper(context);
-        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
-        DatabaseReference database = databaseInstance.getReference();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        List<Note> allNotes = dbHelper.getAllNotes();
-        Map<String, Note> allNotesMap = new HashMap<>();
+        DocumentReference noteRef = db.collection("users").document("test-user").collection("notes").document("test-note-1");
 
-        for(Note note : allNotes){
-//            allNotesMap.put(note.getNoteId(), note);
-            database.child("users").child("scott").child(note.getNoteId()).setValue(note);
-            Log.i("Sync log", "Note ID: " + note.getNoteId());
-        }
+        Note note = new Note();
+        note.setNoteId("test-1234");
+        note.setTitle("This is a test note AGAIN");
+        note.setBody("Hoping this test note works in Firestore");
+
+        Log.i("Firestore", "Backing up data to Firestore");
+
+        noteRef.set(note, SetOptions.merge());
+
+
+//        DBHelper dbHelper = new DBHelper(context);
+//        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
+//        DatabaseReference database = databaseInstance.getReference();
+//
+//        List<Note> allNotes = dbHelper.getAllNotes();
+//        Map<String, Note> allNotesMap = new HashMap<>();
+//
+//        for(Note note : allNotes){
+////            allNotesMap.put(note.getNoteId(), note);
+//            database.child("users").child("scott").child(note.getNoteId()).setValue(note);
+//            Log.i("Sync log", "Note ID: " + note.getNoteId());
+//        }
 
         /*
         This is the general sudo code
