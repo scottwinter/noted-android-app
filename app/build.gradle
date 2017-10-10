@@ -38,6 +38,7 @@ dependencies {
     // Firebase Auth
     compile 'com.google.firebase:firebase-auth:11.4.2'
     compile 'com.firebaseui:firebase-ui-auth:2.3.0'
+    compile 'com.google.android.gms:play-services-auth:11.4.2'
     // Firebase Ads
     compile 'com.google.firebase:firebase-ads:11.4.2'
     // Required only if Facebook login support is required

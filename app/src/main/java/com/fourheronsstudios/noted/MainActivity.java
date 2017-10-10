@@ -22,6 +22,8 @@ import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.model.Note;
 import com.fourheronsstudios.noted.utils.DatabaseUtil;
 import com.fourheronsstudios.noted.utils.NotedUtils;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -51,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Note> notes;
     private RecyclerView mRecyclerView;
     private NotedUtils utils;
+
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +94,10 @@ public class MainActivity extends AppCompatActivity {
 
         populateNoteList();
 
+        // [START initialize_auth]
+        mAuth = FirebaseAuth.getInstance();
+        // [END initialize_auth]
+
 
         // FIREBASE get list of results for specific user
 //        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
@@ -116,6 +124,15 @@ public class MainActivity extends AppCompatActivity {
 //        database.addListenerForSingleValueEvent(postListener);
 
         // END FIREBASE
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        Log.i("Firebase Auth", "current user is: " + currentUser);
     }
 
     @Override
