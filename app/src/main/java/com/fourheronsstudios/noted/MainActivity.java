@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.SQLException;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -18,10 +19,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.ErrorCodes;
+import com.firebase.ui.auth.IdpResponse;
 import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.model.Note;
 import com.fourheronsstudios.noted.utils.DatabaseUtil;
 import com.fourheronsstudios.noted.utils.NotedUtils;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -29,9 +35,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,6 +49,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Note> notes;
     private RecyclerView mRecyclerView;
     private NotedUtils utils;
+    private static final int RC_SIGN_IN = 123;
 
     private FirebaseAuth mAuth;
 
@@ -126,13 +133,56 @@ public class MainActivity extends AppCompatActivity {
         // END FIREBASE
     }
 
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // RC_SIGN_IN is the request code you passed into startActivityForResult(...) when starting the sign in flow.
+        if (requestCode == RC_SIGN_IN) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+
+            // Successfully signed in
+            if (resultCode == RESULT_OK) {
+                startActivity(new Intent(MainActivity.this, MainActivity.class));
+                Log.i("Firebase Auth", "User has been signed in.");
+                finish();
+                return;
+            } else {
+                // Sign in failed
+                if (response == null) {
+                    // User pressed back button
+                    Log.i("Firebase Auth", "Sign in canceled.");
+                    return;
+                }
+
+                if (response.getErrorCode() == ErrorCodes.NO_NETWORK) {
+                    Log.i("Firebase Auth", "No internet connection");
+                    return;
+                }
+
+                if (response.getErrorCode() == ErrorCodes.UNKNOWN_ERROR) {
+                    Log.i("Firebase Auth", "Unknown error.");
+                    return;
+                }
+            }
+
+            Log.i("Firebase Auth", "Unknown sign in response.");
+        }
+    }
+
     @Override
     public void onStart(){
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
-        Log.i("Firebase Auth", "current user is: " + currentUser);
+        if(currentUser != null){
+            Log.i("Firebase Auth", "current user UID is: " + currentUser.getUid());
+            Log.i("Firebase Auth", "current user Display Name is: " + currentUser.getDisplayName());
+            Log.i("Firebase Auth", "current user Provider Id is: " + currentUser.getEmail());
+        } else {
+            Log.i("Firebase Auth", "User is logged out.");
+        }
+
+
     }
 
     @Override
@@ -179,11 +229,42 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("noteId", -1);
             startActivity(intent);
         } else if (item.getItemId() == R.id.backup) {
-            Log.i("Info log", "Cloud syncing.");
-            cloudBackup(this);
+            if(mAuth.getCurrentUser() != null) {
+                Log.i("Info log", "Cloud syncing.");
+                cloudBackup(this);
+            } else {
+                Toast.makeText(this, "You must sign in before backing up to the cloud",
+                        Toast.LENGTH_LONG).show();
+            }
         } else if (item.getItemId() == R.id.restore) {
-            Log.i("Info log", "Cloud syncing.");
-            cloudRestore(this);
+            if(mAuth.getCurrentUser() != null) {
+                Log.i("Info log", "Cloud syncing.");
+                cloudRestore(this);
+            } else {
+                Toast.makeText(this, "You must sign in before restoring data the cloud",
+                        Toast.LENGTH_LONG).show();
+            }
+        } else if (item.getItemId() == R.id.signout) {
+            AuthUI.getInstance()
+                    .signOut(this)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        public void onComplete(@NonNull Task<Void> task) {
+                            // user is now signed out
+                            startActivity(new Intent(MainActivity.this, MainActivity.class));
+                            finish();
+                        }
+                    });
+            Log.i("Firebase Auth", "User has been logged out.");
+        } else if (item.getItemId() == R.id.signin) {
+            startActivityForResult(
+                    AuthUI.getInstance()
+                            .createSignInIntentBuilder()
+                            .setAvailableProviders(
+                                    Arrays.asList(new AuthUI.IdpConfig.Builder(
+                                            AuthUI.GOOGLE_PROVIDER).build()))
+                            .setIsSmartLockEnabled(!BuildConfig.DEBUG)
+                            .build(),
+                    RC_SIGN_IN);
         }
 //        else if (item.getItemId() == R.id.importNotes) {
 //            Log.i("Notes Import", "Importing Notes");
@@ -209,7 +290,8 @@ public class MainActivity extends AppCompatActivity {
                     if(note != null) {
                         Log.i("Firebase Test", "Note was not null: " + note);
 
-                        dbHelper.createNewNote(note.getNoteId(), note.getTitle(), note.getBody(), Long.valueOf(note.getDate()));
+                        dbHelper.createNewNote(note.getNoteId(), note.getTitle(),
+                                note.getBody(), Long.valueOf(note.getDate()));
                     }
 
                     Log.i("From Firebase", note.toString());
@@ -238,19 +320,41 @@ public class MainActivity extends AppCompatActivity {
     public void cloudBackup(Context context){
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String emailAddress = "unknown@unknown.com";
+        if (currentUser != null && currentUser.getEmail() != null){
+            emailAddress = currentUser.getEmail();
+        }
 
-        DocumentReference noteRef = db.collection("users").document("test-user").collection("notes").document("test-note-1");
+        CollectionReference noteRef = db.collection("users")
+                .document(emailAddress).collection("notes");
 
-        Note note = new Note();
-        note.setNoteId("test-1234");
-        note.setTitle("This is a test note AGAIN");
-        note.setBody("Hoping this test note works in Firestore");
+        // Testing Firestore
+//        Note note = new Note();
+//        note.setNoteId("test-1234");
+//        note.setTitle("This is a test note AGAIN");
+//        note.setBody("Hoping this test note works in Firestore");
+//        noteRef.add(note);
+        // END Testing Firestore
 
+        // Backing up to Firestore Database
         Log.i("Firestore", "Backing up data to Firestore");
+        DBHelper dbHelper = new DBHelper(context);
+        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
+        DatabaseReference database = databaseInstance.getReference();
 
-        noteRef.set(note, SetOptions.merge());
+        List<Note> allNotes = dbHelper.getAllNotes();
+        Map<String, Note> allNotesMap = new HashMap<>();
+
+        for(Note note : allNotes){
+            noteRef.add(note);
+            Log.i("Sync log", "Note ID: " + note.getNoteId());
+        }
+
+        // End Firestore Database
 
 
+        // Backing up to Firebase Realtime Database
 //        DBHelper dbHelper = new DBHelper(context);
 //        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
 //        DatabaseReference database = databaseInstance.getReference();
@@ -264,6 +368,7 @@ public class MainActivity extends AppCompatActivity {
 //            Log.i("Sync log", "Note ID: " + note.getNoteId());
 //        }
 
+        // End Realtime Database
         /*
         This is the general sudo code
         - get all notes from local database
