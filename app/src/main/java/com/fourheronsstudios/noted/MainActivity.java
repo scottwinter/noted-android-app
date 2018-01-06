@@ -36,7 +36,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -274,47 +276,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void cloudRestore(Context context){
-        List<Note> allNotes = new ArrayList<>();
-
-        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
-        DatabaseReference database = databaseInstance.getReference("users").child("scott");
         final DBHelper dbHelper = new DBHelper(context);
-        ValueEventListener postListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.i("Firebase", "On change method executed");
-                dbHelper.deleteAllNotes();
-                for (DataSnapshot noteSnapshot: dataSnapshot.getChildren()) {
-                    // TODO: handle the post
-                    Note note = noteSnapshot.getValue(Note.class);
-                    if(note != null) {
-                        Log.i("Firebase Test", "Note was not null: " + note);
 
-                        dbHelper.createNewNote(note.getNoteId(), note.getTitle(),
-                                note.getBody(), Long.valueOf(note.getDate()));
-                    }
-
-                    Log.i("From Firebase", note.toString());
-//                    allNotes.add(note);
-
-                }
-                populateNoteList();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w("loadPost:onCancelled", databaseError.toException());
-                // ...
-            }
-        };
-        database.addListenerForSingleValueEvent(postListener);
-
-        allNotes = dbHelper.getAllNotes();
-        Log.i("Firebase List", "Note size from list: " + allNotes.size());
-        for(Note note : allNotes){
-            Log.i("From Firebase List", note.toString());
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String emailAddress = "unknown@unknown.com";
+        if (currentUser != null && currentUser.getEmail() != null){
+            emailAddress = currentUser.getEmail();
         }
+
+        db.collection("users").document(emailAddress).collection("notes")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            dbHelper.deleteAllNotes();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                Note note = document.toObject(Note.class);
+                                dbHelper.createNewNote(note.getNoteId(), note.getTitle(),
+                                        note.getBody(), Long.valueOf(note.getDate()));
+                            }
+                            populateNoteList();
+                        } else {
+                            Log.d("Firestore Get Data", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
     }
 
     public void cloudBackup(Context context){
@@ -326,59 +314,23 @@ public class MainActivity extends AppCompatActivity {
             emailAddress = currentUser.getEmail();
         }
 
-        CollectionReference noteRef = db.collection("users")
-                .document(emailAddress).collection("notes");
-
-        // Testing Firestore
-//        Note note = new Note();
-//        note.setNoteId("test-1234");
-//        note.setTitle("This is a test note AGAIN");
-//        note.setBody("Hoping this test note works in Firestore");
-//        noteRef.add(note);
-        // END Testing Firestore
+        CollectionReference noteRef =
+                db.collection("users").document(emailAddress).collection("notes");
 
         // Backing up to Firestore Database
         Log.i("Firestore", "Backing up data to Firestore");
         DBHelper dbHelper = new DBHelper(context);
-        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
-        DatabaseReference database = databaseInstance.getReference();
-
-        List<Note> allNotes = dbHelper.getAllNotes();
-        Map<String, Note> allNotesMap = new HashMap<>();
-
-        for(Note note : allNotes){
-            noteRef.add(note);
-            Log.i("Sync log", "Note ID: " + note.getNoteId());
-        }
-
-        // End Firestore Database
-
-
-        // Backing up to Firebase Realtime Database
-//        DBHelper dbHelper = new DBHelper(context);
 //        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
 //        DatabaseReference database = databaseInstance.getReference();
-//
-//        List<Note> allNotes = dbHelper.getAllNotes();
-//        Map<String, Note> allNotesMap = new HashMap<>();
-//
-//        for(Note note : allNotes){
-////            allNotesMap.put(note.getNoteId(), note);
-//            database.child("users").child("scott").child(note.getNoteId()).setValue(note);
-//            Log.i("Sync log", "Note ID: " + note.getNoteId());
-//        }
 
-        // End Realtime Database
-        /*
-        This is the general sudo code
-        - get all notes from local database
-        - loop through all notes
-            - Update firebase using setValue for each note
-        - Get all notes back from firebase
-        - Update local database with all data from firebase
-        - Update any UI elements (Local method to class calling cloudBackup)
-         */
+        List<Note> allNotes = dbHelper.getAllNotes();
 
+        for(Note note : allNotes){
+//            noteRef.add(note);
+            noteRef.document(note.getNoteId()).set(note);
+            Log.i("Sync log", "Note ID: " + note.getNoteId());
+        }
+        // End Firestore Database
     }
 
     private static boolean isExternalStorageReadOnly() {
