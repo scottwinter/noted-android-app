@@ -6,6 +6,7 @@ import android.database.SQLException;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.annotation.WorkerThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -27,7 +28,10 @@ import com.fourheronsstudios.noted.model.Note;
 import com.fourheronsstudios.noted.utils.DatabaseUtil;
 import com.fourheronsstudios.noted.utils.NotedUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -36,7 +40,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,11 +57,19 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -62,6 +79,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 123;
 
     private FirebaseAuth mAuth;
+    private List<Note> oldBackup = new ArrayList<>();
+
+    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(2, 4,
+            60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -274,50 +295,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void cloudRestore(Context context){
-        List<Note> allNotes = new ArrayList<>();
-
-        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
-        DatabaseReference database = databaseInstance.getReference("users").child("scott");
         final DBHelper dbHelper = new DBHelper(context);
-        ValueEventListener postListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.i("Firebase", "On change method executed");
-                dbHelper.deleteAllNotes();
-                for (DataSnapshot noteSnapshot: dataSnapshot.getChildren()) {
-                    // TODO: handle the post
-                    Note note = noteSnapshot.getValue(Note.class);
-                    if(note != null) {
-                        Log.i("Firebase Test", "Note was not null: " + note);
-
-                        dbHelper.createNewNote(note.getNoteId(), note.getTitle(),
-                                note.getBody(), Long.valueOf(note.getDate()));
-                    }
-
-                    Log.i("From Firebase", note.toString());
-//                    allNotes.add(note);
-
-                }
-                populateNoteList();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w("loadPost:onCancelled", databaseError.toException());
-                // ...
-            }
-        };
-        database.addListenerForSingleValueEvent(postListener);
-
-        allNotes = dbHelper.getAllNotes();
-        Log.i("Firebase List", "Note size from list: " + allNotes.size());
-        for(Note note : allNotes){
-            Log.i("From Firebase List", note.toString());
-        }
-    }
-
-    public void cloudBackup(Context context){
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -326,59 +304,152 @@ public class MainActivity extends AppCompatActivity {
             emailAddress = currentUser.getEmail();
         }
 
-        CollectionReference noteRef = db.collection("users")
-                .document(emailAddress).collection("notes");
+        db.collection("users").document(emailAddress).collection("notes")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            dbHelper.deleteAllNotes();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                Note note = document.toObject(Note.class);
+                                dbHelper.createNewNote(note.getNoteId(), note.getTitle(),
+                                        note.getBody(), Long.valueOf(note.getDate()));
+                            }
+                            populateNoteList();
+                        } else {
+                            Log.d("Firestore Get Data", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+    }
 
-        // Testing Firestore
-//        Note note = new Note();
-//        note.setNoteId("test-1234");
-//        note.setTitle("This is a test note AGAIN");
-//        note.setBody("Hoping this test note works in Firestore");
-//        noteRef.add(note);
-        // END Testing Firestore
+    public void cloudBackup(final Context context){
 
-        // Backing up to Firestore Database
-        Log.i("Firestore", "Backing up data to Firestore");
-        DBHelper dbHelper = new DBHelper(context);
-        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
-        DatabaseReference database = databaseInstance.getReference();
-
-        List<Note> allNotes = dbHelper.getAllNotes();
-        Map<String, Note> allNotesMap = new HashMap<>();
-
-        for(Note note : allNotes){
-            noteRef.add(note);
-            Log.i("Sync log", "Note ID: " + note.getNoteId());
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String emailAddress = "unknown@unknown.com";
+        if (currentUser != null && currentUser.getEmail() != null){
+            emailAddress = currentUser.getEmail();
         }
 
-        // End Firestore Database
+        db.collection("users").document(emailAddress).collection("notes")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (DocumentSnapshot document : task.getResult()) {
+                                Note note = document.toObject(Note.class);
+                               addBackupItems(note);
+                               Log.i("SOMETHING", "-------- Some note: " + note.getNoteId());
+                            }
+                        } else {
+                            Log.d("Firestore Get Data", "Error getting documents: ", task.getException());
+                        }
+
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        FirebaseUser currentUser = mAuth.getCurrentUser();
+                        String emailAddress = "unknown@unknown.com";
+                        if (currentUser != null && currentUser.getEmail() != null){
+                            emailAddress = currentUser.getEmail();
+                        }
+
+                        CollectionReference noteRef =
+                                db.collection("users").document(emailAddress).collection("notes");
+
+                        // Backing up to Firestore Database
+                        Log.i("Firestore", "Backing up data to Firestore");
+                        DBHelper dbHelper = new DBHelper(context);
+
+                        List<Note> allNotes = dbHelper.getAllNotes();
+                        oldBackup.removeAll(allNotes);
+
+                        for(Note note : allNotes){
+                            noteRef.document(note.getNoteId()).set(note);
+                            Log.i("Sync log", "Note ID: " + note.getNoteId());
+                        }
+
+                        for(Note note: oldBackup) {
+
+                            db.collection("users").document(emailAddress).collection("notes").document(note.getNoteId())
+                                    .delete()
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            Log.d("Delete Doc", "DocumentSnapshot successfully deleted!");
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.w("Delete Doc", "Error deleting document", e);
+                                        }
+                                    });
+                        }
+                    }
+                });
+
+    }
+
+    private void addBackupItems(Note note){
+        oldBackup.add(note);
+    }
 
 
-        // Backing up to Firebase Realtime Database
-//        DBHelper dbHelper = new DBHelper(context);
-//        FirebaseDatabase databaseInstance = DatabaseUtil.getDatabase();
-//        DatabaseReference database = databaseInstance.getReference();
-//
-//        List<Note> allNotes = dbHelper.getAllNotes();
-//        Map<String, Note> allNotesMap = new HashMap<>();
-//
-//        for(Note note : allNotes){
-////            allNotesMap.put(note.getNoteId(), note);
-//            database.child("users").child("scott").child(note.getNoteId()).setValue(note);
-//            Log.i("Sync log", "Note ID: " + note.getNoteId());
-//        }
+    /**
+     * Delete all documents in a collection. Uses an Executor to perform work on a background
+     * thread. This does *not* automatically discover and delete subcollections.
+     */
+    private Task<Void> deleteCollection(final CollectionReference collection,
+                                        final int batchSize,
+                                        Executor executor) {
 
-        // End Realtime Database
-        /*
-        This is the general sudo code
-        - get all notes from local database
-        - loop through all notes
-            - Update firebase using setValue for each note
-        - Get all notes back from firebase
-        - Update local database with all data from firebase
-        - Update any UI elements (Local method to class calling cloudBackup)
-         */
+        // Perform the delete operation on the provided Executor, which allows us to use
+        // simpler synchronous logic without blocking the main thread.
+        return Tasks.call(executor, new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                // Get the first batch of documents in the collection
+                Query query = collection.orderBy(FieldPath.documentId()).limit(batchSize);
 
+                // Get a list of deleted documents
+                List<DocumentSnapshot> deleted = deleteQueryBatch(query);
+
+                // While the deleted documents in the last batch indicate that there
+                // may still be more documents in the collection, page down to the
+                // next batch and delete again
+                while (deleted.size() >= batchSize) {
+                    // Move the query cursor to start after the last doc in the batch
+                    DocumentSnapshot last = deleted.get(deleted.size() - 1);
+                    query = collection.orderBy(FieldPath.documentId())
+                            .startAfter(last.getId())
+                            .limit(batchSize);
+
+                    deleted = deleteQueryBatch(query);
+                }
+
+                return null;
+            }
+        });
+
+    }
+
+    /**
+     * Delete all results from a query in a single WriteBatch. Must be run on a worker thread
+     * to avoid blocking/crashing the main thread.
+     */
+    @WorkerThread
+    private List<DocumentSnapshot> deleteQueryBatch(final Query query) throws Exception {
+        QuerySnapshot querySnapshot = Tasks.await(query.get());
+
+        WriteBatch batch = query.getFirestore().batch();
+        for (DocumentSnapshot snapshot : querySnapshot) {
+            batch.delete(snapshot.getReference());
+        }
+        Tasks.await(batch.commit());
+
+        return querySnapshot.getDocuments();
     }
 
     private static boolean isExternalStorageReadOnly() {

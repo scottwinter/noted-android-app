@@ -1,5 +1,7 @@
 package com.fourheronsstudios.noted.model;
 
+import java.util.Objects;
+
 public class Note {
 
     private int id;
@@ -86,5 +88,21 @@ public class Note {
                 "\"body\":\"" + body + "\"," +
                 "\"date\":" + date +
                 "}";
+    }
+
+    @Override
+    public boolean equals(Object obj){
+        Note note = (Note) obj;
+        if(this.getNoteId().equals(note.getNoteId())){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int prime = 31;
+        return prime + Objects.hashCode(this.noteId);
     }
 }
