@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.fourherons.noted"
         minSdkVersion 21
@@ -10,7 +10,6 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        resConfigs "auto"
     }
     buildTypes {
         release {
@@ -21,30 +20,32 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    //compile 'com.google.android.gms:play-services-appindexing:9.8.0'
-    compile 'com.android.support:design:26.0.1'
-    compile 'com.android.support:appcompat-v7:26.0.1'
-    compile 'com.android.support:recyclerview-v7:26.0.1'
+    implementation 'com.android.support:support-v4:26.1.0'
+    implementation 'com.android.support:design:26.1.0'
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:recyclerview-v7:26.1.0'
+    implementation 'com.android.support:animated-vector-drawable:26.1.0'
+    implementation 'com.android.support:cardview-v7:26.1.0'
 
-    compile 'com.google.firebase:firebase-core:11.4.2'
+    implementation 'com.google.firebase:firebase-core:16.0.4'
     // Firebase Cloud Firestore
-    compile 'com.google.firebase:firebase-firestore:11.4.2'
+    implementation 'com.google.firebase:firebase-firestore:17.1.2'
     // Firebase Realtime Database
-    compile 'com.google.firebase:firebase-database:11.4.2'
+    implementation 'com.google.firebase:firebase-database:16.0.4'
     // Firebase Auth
-    compile 'com.google.firebase:firebase-auth:11.4.2'
-    compile 'com.firebaseui:firebase-ui-auth:2.3.0'
-    compile 'com.google.android.gms:play-services-auth:11.4.2'
+    implementation 'com.google.firebase:firebase-auth:16.0.5'
+    implementation 'com.firebaseui:firebase-ui-auth:2.3.0'
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
     // Firebase Ads
-    compile 'com.google.firebase:firebase-ads:11.4.2'
+    implementation 'com.google.firebase:firebase-ads:17.0.0'
     // Required only if Facebook login support is required
-    compile('com.facebook.android:facebook-android-sdk:4.22.1')
+    implementation('com.facebook.android:facebook-android-sdk:4.22.1')
     // Required only if Twitter login support is required
-    compile("com.twitter.sdk.android:twitter-core:3.0.0@aar") { transitive = true }
-    testCompile 'junit:junit:4.12'
+    implementation("com.twitter.sdk.android:twitter-core:3.0.0@aar") { transitive = true }
+    testImplementation 'junit:junit:4.12'
 }
 apply plugin: 'com.google.gms.google-services'
