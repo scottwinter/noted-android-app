@@ -21,6 +21,9 @@
         <activity android:name=".EditNoteActivity" />
         <activity android:name=".ReadNoteActivity" />
         <activity android:name=".SignInActivity"></activity>
+        <!--<meta-data-->
+            <!--android:name="com.google.android.gms.ads.APPLICATION_ID"-->
+            <!--android:value="ca-app-pub-8131553343119524~4214811176"/>-->
     </application>
 
 </manifest>

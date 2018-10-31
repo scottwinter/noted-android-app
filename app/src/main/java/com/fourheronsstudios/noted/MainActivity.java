@@ -27,6 +27,7 @@ import com.fourheronsstudios.noted.database.DBHelper;
 import com.fourheronsstudios.noted.model.Note;
 import com.fourheronsstudios.noted.utils.DatabaseUtil;
 import com.fourheronsstudios.noted.utils.NotedUtils;
+//import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -87,6 +88,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialize Ads for this app
+//        MobileAds.initialize(this, "ca-app-pub-8131553343119524~4214811176");
+
         utils = new NotedUtils();
         setContentView(R.layout.activity_main);
 
